@@ -21,7 +21,11 @@ namespace Rhetos.RestGenerator
 using Autofac;
 using Module = Autofac.Module;
 using Rhetos.Dom.DefaultConcepts;
-//using Rhetos.RestGenerator.Utilities;
+using Rhetos.RestGenerator.Utilities;
+using Microsoft.Owin.Hosting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Owin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +33,7 @@ using System.Web;
 using System.Net;
 using System.IO;
 using System.Text;
+using System.Net.Http.Formatting;
 using System.Web.Http;
 using System.Net.Http.Formatting;
 using Newtonsoft.Json;
@@ -77,14 +82,14 @@ namespace Rhetos.Rest
         }
     }
 
+
     [System.ComponentModel.Composition.Export(typeof(Module))]
     public class RestServiceModuleConfiguration : Module
     {
         protected override void Load(ContainerBuilder builder)
         {
-            //builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
-            builder.RegisterType<RestServiceExampleCommonController>().InstancePerLifetimeScope();
-            Console.WriteLine(""Registered!!!!!!!!!!!"");
+            builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
+            builder.RegisterType<ExampleCommonController>().InstancePerLifetimeScope();
             " + @"
             base.Load(builder);
         }
@@ -103,10 +108,10 @@ namespace Rhetos.Rest
         public void InitializeApplicationInstance(System.Web.HttpApplication context)
         {
         }
-    }    
+    }
 
     [RoutePrefix(""Example/Common"")]
-    public class RestServiceExampleCommonController : ApiController
+    public class ExampleCommonController : ApiController
     {
         [HttpGet]
         [Route("""")]
@@ -115,6 +120,7 @@ namespace Rhetos.Rest
             return filter;
         }
     }
+" + RhetosRestClassesTag + @"
 }
 ";
 
@@ -156,9 +162,9 @@ namespace Rhetos.Rest
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Web.JsonErrorServiceBehavior));
 
             // RestGenerator
-            //codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.ServiceUtility));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.ServiceUtility));
 
-            //codeBuilder.AddReference(Path.Combine(_rootPath, "ServerDom.dll"));
+            codeBuilder.AddReference(Path.Combine(_rootPath, "ServerDom.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Autofac.dll"));
         }
 
