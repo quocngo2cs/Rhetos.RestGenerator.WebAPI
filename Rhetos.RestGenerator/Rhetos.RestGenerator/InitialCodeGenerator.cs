@@ -8,13 +8,16 @@ using System.Web.Http;
 using System.Net;
 using System.Runtime.Serialization;
 using Owin;
+using Autofac.Integration.Wcf;
+using Autofac.Integration.WebApi;
+
 namespace Rhetos.RestGenerator
 {
     public class InitialCodeGenerator : IRestGeneratorPlugin
     {
         public const string RhetosRestClassesTag = "/*InitialCodeGenerator.RhetosRestClassesTag*/";
         public const string ServiceRegistrationTag = "/*InitialCodeGenerator.ServiceRegistrationTag*/";
-        public const string ServiceInitializationTag = "/*InitialCodeGenerator.ServiceInitializationTag*/";
+        //public const string ServiceInitializationTag = "/*InitialCodeGenerator.ServiceInitializationTag*/";
 
         private const string CodeSnippet =
 @"
@@ -40,6 +43,9 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Owin;
 using Microsoft.Owin.Hosting;
+using Autofac.Integration.Wcf;
+using Autofac.Integration.WebApi;
+using System.Reflection;
 
 namespace Rhetos.Rest
 {
@@ -78,6 +84,7 @@ namespace Rhetos.Rest
                 name: ""DefaultApi"",
                 routeTemplate: ""api/{controller}/{id}"",
                 defaults: new { id = RouteParameter.Optional });
+            config.DependencyResolver = new AutofacWebApiDependencyResolver(AutofacServiceHostFactory.Container);
             appBuilder.UseWebApi(config);
         }
     }
@@ -89,7 +96,8 @@ namespace Rhetos.Rest
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
-            builder.RegisterType<ExampleCommonController>().InstancePerLifetimeScope();
+            Console.WriteLine(Assembly.GetExecutingAssembly());
+            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
             " + @"
             base.Load(builder);
         }
@@ -129,7 +137,7 @@ namespace Rhetos.Rest
         public void GenerateCode(IConceptInfo conceptInfo, ICodeBuilder codeBuilder)
         {
             codeBuilder.InsertCode(CodeSnippet);
-
+            
             // Global
             codeBuilder.AddReferencesFromDependency(typeof(Guid));
             codeBuilder.AddReferencesFromDependency(typeof(System.Linq.Enumerable));
@@ -144,6 +152,8 @@ namespace Rhetos.Rest
             codeBuilder.AddReference(Path.Combine(_rootPath, "System.Web.Http.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "System.Web.Http.WebHost.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Owin.dll"));
+            codeBuilder.AddReference(Path.Combine(_rootPath, "Autofac.Integration.WebApi.dll"));
+            codeBuilder.AddReference(Path.Combine(_rootPath, "Autofac.Integration.Wcf.dll"));
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.HttpApplication));
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpMessageHandler));
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.Formatting.JsonMediaTypeFormatter));
@@ -151,6 +161,9 @@ namespace Rhetos.Rest
             codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.JsonSerializerSettings));
             codeBuilder.AddReferencesFromDependency(typeof(Owin.WebApiAppBuilderExtensions));
             codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Hosting.WebApp));
+            codeBuilder.AddReferencesFromDependency(typeof(Autofac.Integration.Wcf.AutofacHostFactory));
+            codeBuilder.AddReferencesFromDependency(typeof(Autofac.Integration.WebApi.AutofacWebApiDependencyResolver));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Reflection.Assembly));
             // Rhetos
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.IService));
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Dom.DefaultConcepts.IEntity));

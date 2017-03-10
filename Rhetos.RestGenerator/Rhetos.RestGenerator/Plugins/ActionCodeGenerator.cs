@@ -51,7 +51,7 @@ namespace Rhetos.RestGenerator.Plugins
         {
             var info = (ActionInfo)conceptInfo;
 
-            codeBuilder.InsertCode(ServiceRegistrationCodeSnippet(info), InitialCodeGenerator.ServiceRegistrationTag);
+            //codeBuilder.InsertCode(ServiceRegistrationCodeSnippet(info), InitialCodeGenerator.ServiceRegistrationTag);
             codeBuilder.InsertCode(ServiceDefinitionCodeSnippet(info), InitialCodeGenerator.RhetosRestClassesTag);
         }
     }

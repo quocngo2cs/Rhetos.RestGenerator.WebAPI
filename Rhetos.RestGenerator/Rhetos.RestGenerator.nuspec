@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Rhetos.RestGenerator</id>
-    <version>1.13.3</version>
+    <version>1.14.14</version>
     <authors>Omega software</authors>
     <owners>Omega software</owners>
     <licenseUrl>http://opensource.org/licenses/AGPL-3.0</licenseUrl>
@@ -11,10 +11,23 @@
       It automatically generates RESTful JSON web service for all entities, actions and other data structures that are defined in a Rhetos application.</description>
     <copyright>Copyright Omega software 2015</copyright>
     <tags>Rhetos</tags>
+	<dependencies>
+	  <dependency id="Rhetos" version="1.0.0" />
+	  <dependency id="Autofac.WebApi2" version="4.0.1" />
+	  <dependency id="Microsoft.AspNet.WebApi" version="5.2.3" />
+	  <dependency id="Microsoft.AspNet.WebApi.Client" version="5.2.3" />
+	  <dependency id="Microsoft.AspNet.WebApi.Core" version="5.2.3" />
+	  <dependency id="Microsoft.AspNet.WebApi.Owin" version="5.2.3" />
+	  <dependency id="Microsoft.AspNet.WebApi.OwinSelfHost" version="5.2.3" />
+	  <dependency id="Microsoft.AspNet.WebApi.WebHost" version="5.2.3" />
+	  <dependency id="Microsoft.Owin" version="2.0.2" />
+	  <dependency id="Microsoft.Owin.Host.HttpListener" version="2.0.2" />
+	  <dependency id="Microsoft.Owin.Hosting" version="2.0.2" />
+	  <dependency id="Owin" version="1.0" />
+    </dependencies>
   </metadata>
   <files>
     <file src="Rhetos.RestGenerator\bin\Debug\Rhetos.RestGenerator.dll" target="Plugins" />
     <file src="Rhetos.RestGenerator\bin\Debug\Rhetos.RestGenerator.pdb" target="Plugins" />
-    <file src="Rhetos.RestGenerator\bin\Debug\Newtonsoft.Json.dll" target="Plugins" />
   </files>
 </package>

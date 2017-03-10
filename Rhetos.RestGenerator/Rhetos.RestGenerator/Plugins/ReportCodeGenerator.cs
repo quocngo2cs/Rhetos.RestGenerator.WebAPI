@@ -10,6 +10,7 @@ using Rhetos.Extensibility;
 using Rhetos.RestGenerator;
 using Rhetos.Utilities;
 
+
 namespace Rhetos.RestGenerator.Plugins
 {
     [Export(typeof(IRestGeneratorPlugin))]
@@ -20,7 +21,7 @@ namespace Rhetos.RestGenerator.Plugins
         {
             var info = (ReportDataInfo)conceptInfo;
 
-            codeBuilder.InsertCode(ServiceRegistrationCodeSnippet(info), InitialCodeGenerator.ServiceRegistrationTag);
+            //codeBuilder.InsertCode(ServiceRegistrationCodeSnippet(info), InitialCodeGenerator.ServiceRegistrationTag);
             codeBuilder.InsertCode(ServiceDefinitionCodeSnippet(info), InitialCodeGenerator.RhetosRestClassesTag);
 
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.ServiceUtility));
