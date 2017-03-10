@@ -7,7 +7,7 @@ using System.Xml;
 using System.Web.Http;
 using System.Net;
 using System.Runtime.Serialization;
-
+using Owin;
 namespace Rhetos.RestGenerator
 {
     public class InitialCodeGenerator : IRestGeneratorPlugin
@@ -30,6 +30,11 @@ using System.Net;
 using System.IO;
 using System.Text;
 using System.Web.Http;
+using System.Net.Http.Formatting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Owin;
+using Microsoft.Owin.Hosting;
 
 namespace Rhetos.Rest
 {
@@ -49,12 +54,26 @@ namespace Rhetos.Rest
             );
         }
     }    
-
-    public class RhetosRestGeneratorApplication : System.Web.HttpApplication
+    
+    public class Startup
     {
-        protected void Application_Start()
+        public void Configuration(IAppBuilder appBuilder)
         {
-            GlobalConfiguration.Configure(WebApiConfig.Register);
+            // Configure Web API for self-host. 
+            HttpConfiguration config = new HttpConfiguration();
+            config.Formatters.Clear();
+            config.Formatters.Add(new JsonMediaTypeFormatter());
+            config.Formatters.JsonFormatter.SerializerSettings =
+            new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            };
+            config.MapHttpAttributeRoutes();
+            config.Routes.MapHttpRoute(
+                name: ""DefaultApi"",
+                routeTemplate: ""api/{controller}/{id}"",
+                defaults: new { id = RouteParameter.Optional });
+            appBuilder.UseWebApi(config);
         }
     }
 
@@ -64,10 +83,28 @@ namespace Rhetos.Rest
         protected override void Load(ContainerBuilder builder)
         {
             //builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
-            " + ServiceRegistrationTag + @"
+            builder.RegisterType<RestServiceExampleCommonController>().InstancePerLifetimeScope();
+            Console.WriteLine(""Registered!!!!!!!!!!!"");
+            " + @"
             base.Load(builder);
         }
     }
+
+    [System.ComponentModel.Composition.Export(typeof(Rhetos.IService))]
+    public class RestServiceInitializer : Rhetos.IService
+    {
+        public void Initialize()
+        {
+            string baseAddress = ""http://localhost:9100/"";
+            WebApp.Start<Startup>(url: baseAddress);
+            GlobalConfiguration.Configure(WebApiConfig.Register);
+        }
+
+        public void InitializeApplicationInstance(System.Web.HttpApplication context)
+        {
+        }
+    }    
+
     [RoutePrefix(""Example/Common"")]
     public class RestServiceExampleCommonController : ApiController
     {
@@ -100,8 +137,14 @@ namespace Rhetos.Rest
             // Web Api
             codeBuilder.AddReference(Path.Combine(_rootPath, "System.Web.Http.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "System.Web.Http.WebHost.dll"));
+            codeBuilder.AddReference(Path.Combine(_rootPath, "Owin.dll"));
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.HttpApplication));
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpMessageHandler));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.Formatting.JsonMediaTypeFormatter));
+            codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver));
+            codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.JsonSerializerSettings));
+            codeBuilder.AddReferencesFromDependency(typeof(Owin.WebApiAppBuilderExtensions));
+            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Hosting.WebApp));
             // Rhetos
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.IService));
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Dom.DefaultConcepts.IEntity));
@@ -120,5 +163,4 @@ namespace Rhetos.Rest
         }
 
     }
-
 }
