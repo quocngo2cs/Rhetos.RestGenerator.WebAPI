@@ -1,15 +1,8 @@
 ﻿using System;
-using Rhetos.Web;
 using Rhetos.Compiler;
 using Rhetos.Dsl;
 using System.IO;
 using System.Xml;
-using System.Web.Http;
-using System.Net;
-using System.Runtime.Serialization;
-using Owin;
-using Autofac.Integration.Wcf;
-using Autofac.Integration.WebApi;
 
 namespace Rhetos.RestGenerator
 {

@@ -1,14 +1,11 @@
-﻿using Rhetos.Compiler;
-using Rhetos.Extensibility;
-using Rhetos.Logging;
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Rhetos.Compiler;
+using Rhetos.Extensibility;
+using Rhetos.Logging;
 using ICodeGenerator = Rhetos.Compiler.ICodeGenerator;
 
 namespace Rhetos.RestGenerator

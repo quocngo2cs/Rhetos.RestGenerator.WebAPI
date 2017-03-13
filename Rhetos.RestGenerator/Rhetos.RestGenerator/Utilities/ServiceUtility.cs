@@ -1,4 +1,7 @@
-﻿
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Rhetos.Dom;
@@ -6,13 +9,6 @@ using Rhetos.Dom.DefaultConcepts;
 using Rhetos.Logging;
 using Rhetos.Processing;
 using Rhetos.Processing.DefaultCommands;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
 
 namespace Rhetos.RestGenerator.Utilities
 {

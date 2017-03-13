@@ -1,14 +1,8 @@
-﻿
-using System;
-using System.ComponentModel.Composition;
-using System.Globalization;
-using System.Xml;
+﻿using System.ComponentModel.Composition;
 using Rhetos.Compiler;
 using Rhetos.Dsl;
 using Rhetos.Dsl.DefaultConcepts;
 using Rhetos.Extensibility;
-using Rhetos.RestGenerator;
-using Rhetos.Utilities;
 
 namespace Rhetos.RestGenerator.Plugins
 {
