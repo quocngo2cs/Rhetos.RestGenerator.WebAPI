@@ -44,7 +44,7 @@ namespace Rhetos.RestGenerator.Plugins
             _serviceUtility = serviceUtility;
             {4}
         }}
-    
+
         public static readonly IDictionary<string, Type[]> FilterTypes = new List<Tuple<string, Type>>
             {{
                 " + FilterTypesTag.Evaluate(info) + @"
@@ -97,7 +97,7 @@ namespace Rhetos.RestGenerator.Plugins
         {{
             var result = _serviceUtility.GetDataById<{0}.{1}>(id);
             if (result == null)
-                throw new Rhetos.LegacyClientException(""There is no resource of this type with a given ID."") {{ HttpStatusCode = HttpStatusCode.NotFound }};
+                throw new Rhetos.ClientException(""There is no resource of this type with a given ID."") {{ HttpStatusCode = HttpStatusCode.NotFound }};
             return result;
         }}
 
