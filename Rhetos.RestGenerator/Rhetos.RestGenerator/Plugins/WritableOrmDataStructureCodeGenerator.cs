@@ -32,11 +32,11 @@ namespace Rhetos.RestGenerator.Plugins
         {{
             Guid guid;
             if (!Guid.TryParse(id, out guid))
-                throw new Rhetos.LegacyClientException(""Invalid format of GUID parametar 'ID'."");
+                throw new Rhetos.ClientException(""Invalid format of GUID parametar 'ID'."");
             if (Guid.Empty == entity.ID)
                 entity.ID = guid;
             if (guid != entity.ID)
-                throw new Rhetos.LegacyClientException(""Given entity ID is not equal to resource ID from URI."");
+                throw new Rhetos.ClientException(""Given entity ID is not equal to resource ID from URI."");
 
             _serviceUtility.UpdateData(entity);
         }}
@@ -47,7 +47,7 @@ namespace Rhetos.RestGenerator.Plugins
         {{
             Guid guid;
             if (!Guid.TryParse(id, out guid))
-                throw new Rhetos.LegacyClientException(""Invalid format of GUID parametar 'ID'."");
+                throw new Rhetos.ClientException(""Invalid format of GUID parametar 'ID'."");
             var entity = new {0}.{1} {{ ID = guid }};
 
             _serviceUtility.DeleteData(entity);
