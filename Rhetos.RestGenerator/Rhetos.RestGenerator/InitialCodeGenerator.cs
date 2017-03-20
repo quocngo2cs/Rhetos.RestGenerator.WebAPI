@@ -7,6 +7,8 @@ using System.Xml;
 using System.Web.Http;
 using System.Net;
 using System.Runtime.Serialization;
+using System.ServiceModel.Activation;
+using System.Web.Routing;
 
 namespace Rhetos.RestGenerator
 {
@@ -33,14 +35,33 @@ using System.Web;
 using System.Net;
 using System.IO;
 using System.Text;
+using System.Web.Routing;
 using System.Net.Http.Formatting;
 using System.Web.Http;
 using Autofac.Integration.Wcf;
 using Autofac.Integration.WebApi;
 using System.Reflection;
+using System.ServiceModel;
+using System.ServiceModel.Web;
+using System.ServiceModel.Activation;
 
 namespace Rhetos.Rest
 {
+    [System.ServiceModel.ServiceContract]
+    [System.ServiceModel.Activation.AspNetCompatibilityRequirements(RequirementsMode = System.ServiceModel.Activation.AspNetCompatibilityRequirementsMode.Allowed)]
+    public class RestServiceTest
+    {
+        [OperationContract]
+        [WebGet(UriTemplate=""/*"")]
+        public string getStringTest()
+        {
+            IncomingWebRequestContext requestContext = WebOperationContext.Current.IncomingRequest;
+            WebHeaderCollection header = requestContext.Headers;
+            string cookies = header[HttpRequestHeader.Cookie];
+            return ""abcd"";
+        }
+    }
+    
     public static class WebApiConfig
     {
         public static void Register(HttpConfiguration config)
@@ -88,6 +109,7 @@ namespace Rhetos.Rest
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
+            builder.RegisterType<RestServiceTest>().InstancePerLifetimeScope();
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
             " + @"
             base.Load(builder);
@@ -99,6 +121,7 @@ namespace Rhetos.Rest
     {
         public void Initialize()
         {
+            System.Web.Routing.RouteTable.Routes.Add(new System.ServiceModel.Activation.ServiceRoute(""Rest"", new WebServiceHostFactory(), typeof(RestServiceTest)));
             string baseAddress = ""http://localhost:9100/"";
             WebApp.Start<Startup>(url: baseAddress);
             GlobalConfiguration.Configure(WebApiConfig.Register);
@@ -138,6 +161,17 @@ namespace Rhetos.Rest
 
             // Registration
             codeBuilder.AddReferencesFromDependency(typeof(System.ComponentModel.Composition.ExportAttribute));
+
+            //WCF
+            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.ServiceContractAttribute));
+            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Activation.AspNetCompatibilityRequirementsAttribute));
+            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Web.WebServiceHost));
+            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Activation.WebServiceHostFactory));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Web.Routing.RouteTable));
+            codeBuilder.AddReferencesFromDependency(typeof(Route));
+            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Web.IncomingWebRequestContext));
+            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Web.WebOperationContext));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Net.WebHeaderCollection));
 
             // Web Api
             codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "System.Web.Http.dll"));
