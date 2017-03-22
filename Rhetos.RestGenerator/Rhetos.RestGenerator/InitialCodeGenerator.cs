@@ -1,17 +1,9 @@
 ﻿using System;
-using Rhetos.Web;
+using System.IO;
+using System.Web.Routing;
+using System.Xml;
 using Rhetos.Compiler;
 using Rhetos.Dsl;
-using System.IO;
-using System.Xml;
-using System.Web.Http;
-using System.Net;
-using System.Runtime.Serialization;
-using System.ServiceModel.Activation;
-using System.Web.Routing;
-using System.Net.Http;
-using Microsoft.Owin.Security.Cookies;
-using Microsoft.Owin.Security;
 
 namespace Rhetos.RestGenerator
 {
@@ -127,82 +119,6 @@ namespace Rhetos.Rest
         }
     }
 
-    [System.ServiceModel.ServiceContract]
-    [System.ServiceModel.Activation.AspNetCompatibilityRequirements(RequirementsMode = System.ServiceModel.Activation.AspNetCompatibilityRequirementsMode.Allowed)]
-    public class RestServiceTest
-    {
-         private readonly string[] _dummyAuthCookies = { ""ASP.NET_SessionId="", "".ASPXAUTH="", ""formsAuth={}"" };
-
-        [OperationContract]
-        [WebGet(UriTemplate=""/*"", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
-        public async Task<string> getStringTest()
-        {
-            string result;
-            HttpContext context = HttpContext.Current;
-            string path = context.Request.RawUrl;
-            CookieContainer cookiecontainer = new CookieContainer();
-            using (HttpClient httpClient = new HttpClient(new HttpClientHandler() { CookieContainer = cookiecontainer }))
-            {
-                var requestMessage = new HttpRequestMessage();
-                requestMessage.Method = new HttpMethod(""GET"");
-                // Copy the request headers
-
-                foreach(var key in context.Request.Headers.AllKeys)
-                {
-                    if (!requestMessage.Headers.TryAddWithoutValidation(key, context.Request.Headers[key]))
-                        requestMessage.Content.Headers.TryAddWithoutValidation(key, context.Request.Headers[key]);
-                }
-                requestMessage.Headers.Host = ""localhost:9100"";
-                var uriString = ""http://localhost:9100"" + path;
-                requestMessage.RequestUri = new Uri(uriString);
-                if (!requestMessage.Headers.Contains(""Origin""))
-                    requestMessage.Headers.TryAddWithoutValidation(""Origin"", ""http://localhost"");
-                var baseAddress = new Uri (""http://localhost:9100"");
-                foreach (var dummyAuthCookie in _dummyAuthCookies)
-                    cookiecontainer.SetCookies(baseAddress, dummyAuthCookie);
-                foreach (var cookie in context.Request.Headers[""Cookie""].Split(';').Select(x => x.Trim()))
-                    cookiecontainer.SetCookies(baseAddress, cookie);
-                using (var responseMessage = await httpClient.SendAsync(requestMessage))
-                {
-                    int statusCode = (int)responseMessage.StatusCode;
-                    result = await responseMessage.Content.ReadAsStringAsync();
-                }
-            }
-            return result;
-        }
-
-        [OperationContract]
-        [WebInvoke(Method = ""POST"", UriTemplate = ""/*"", BodyStyle = WebMessageBodyStyle.Bare, RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
-        public string postStringTest(Stream bodyStream)
-        {
-            String body = new StreamReader(bodyStream).ReadToEnd();
-            IncomingWebRequestContext requestContext = WebOperationContext.Current.IncomingRequest;
-            WebHeaderCollection header = requestContext.Headers;
-            string cookies = header[HttpRequestHeader.Cookie];
-            return ""abcd"";
-        }
-
-        [OperationContract]
-        [WebInvoke(Method = ""PUT"", UriTemplate = ""/*"", BodyStyle = WebMessageBodyStyle.Bare, RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
-        public string putStringTest()
-        {
-            IncomingWebRequestContext requestContext = WebOperationContext.Current.IncomingRequest;
-            WebHeaderCollection header = requestContext.Headers;
-            string cookies = header[HttpRequestHeader.Cookie];
-            return ""abcd"";
-        }
-
-        [OperationContract]
-        [WebInvoke(Method = ""DELETE"", UriTemplate = ""/*"", BodyStyle = WebMessageBodyStyle.Bare, RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
-        public string deleteStringTest()
-        {
-            IncomingWebRequestContext requestContext = WebOperationContext.Current.IncomingRequest;
-            WebHeaderCollection header = requestContext.Headers;
-            string cookies = header[HttpRequestHeader.Cookie];
-            return ""abcd"";
-        }
-    }
-    
     public static class WebApiConfig
     {
         public static void Register(HttpConfiguration config)
@@ -218,13 +134,13 @@ namespace Rhetos.Rest
                 defaults: new { id = RouteParameter.Optional }
             );
         }
-    }    
+    }
 
     public class Startup
     {
         public void Configuration(IAppBuilder appBuilder)
         {
-            // Configure Web API for self-host. 
+            // Configure Web API for self-host.
             HttpConfiguration config = new HttpConfiguration();
             config.Formatters.Clear();
             config.Formatters.Add(new JsonMediaTypeFormatter());
@@ -239,16 +155,13 @@ namespace Rhetos.Rest
                 routeTemplate: ""api/{controller}/{id}"",
                 defaults: new { id = RouteParameter.Optional });
             config.DependencyResolver = new AutofacWebApiDependencyResolver(AutofacServiceHostFactory.Container);
-            
-            //IDataProtector dataProtector = appBuilder.CreateDataProtector(
-            //        typeof(CookieAuthenticationMiddleware).FullName,
-            //        ""ApplicationCookie"", ""v1"");
+
             IDataProtector dataProtector = appBuilder.CreateDataProtector(
                     ""SampleApplicationDataProtector"",
                     ""ApplicationCookie"", ""v1"");
 
             var ticketDataFormat = new CustomTicketDataFormat(dataProtector);
-            
+
             appBuilder.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = ""ApplicationCookie"",
@@ -278,7 +191,7 @@ namespace Rhetos.Rest
     {
         public void Initialize()
         {
-            System.Web.Routing.RouteTable.Routes.Add(new System.ServiceModel.Activation.ServiceRoute(""Rest"", new WebServiceHostFactory(), typeof(RestServiceTest)));
+            System.Web.Routing.RouteTable.Routes.Add(new MatchAllPrefixRoute(""REST"", new WebAPIRestRouteHandler()));
             string baseAddress = ""http://localhost:9100/"";
             WebApp.Start<Startup>(url: baseAddress);
             GlobalConfiguration.Configure(WebApiConfig.Register);
@@ -369,6 +282,8 @@ namespace Rhetos.Rest
 
             // RestGenerator
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.ServiceUtility));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.WebAPIRestRouteHandler));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.MatchAllPrefixRoute));
 
             codeBuilder.AddReference(Path.Combine(_rootPath, "ServerDom.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Autofac.dll"));

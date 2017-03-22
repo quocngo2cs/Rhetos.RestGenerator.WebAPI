@@ -170,11 +170,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities\CountResult.cs" />
     <Compile Include="Utilities\DownloadReportResult.cs" />
+    <Compile Include="Utilities\MatchAllPrefixRoute.cs" />
     <Compile Include="Utilities\InsertDataResult.cs" />
     <Compile Include="Utilities\RecordsAndTotalCountResult.cs" />
     <Compile Include="Utilities\RecordsResult.cs" />
     <Compile Include="Utilities\ServiceUtility.cs" />
     <Compile Include="Utilities\TotalCountResult.cs" />
+    <Compile Include="Utilities\WebAPIRestRouteHandler.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
