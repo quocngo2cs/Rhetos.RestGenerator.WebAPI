@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Rhetos.RestGenerator</id>
-    <version>1.17.55</version>
+    <version>1.18.75</version>
     <authors>2ClickSolutions</authors>
     <owners>2ClickSolutions</owners>
     <licenseUrl>http://opensource.org/licenses/AGPL-3.0</licenseUrl>
@@ -12,6 +12,8 @@
     <copyright>Copyright 2ClickSolutions 2017</copyright>
     <tags>Rhetos plugin</tags>
     <dependencies>
+	  <dependency id="Microsoft.Owin" version="2.0.2" />
+	  <dependency id="Microsoft.Owin.Security.Cookies" version="2.0.2" />
 	  <dependency id="Microsoft.AspNet.WebApi.WebHost" version="5.2.3" />
 	  <dependency id="Microsoft.AspNet.WebApi.OwinSelfHost" version="5.2.3" />
 	  <dependency id="Autofac.Integration.WebApi" version="4.0.1" />

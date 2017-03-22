@@ -9,6 +9,9 @@ using System.Net;
 using System.Runtime.Serialization;
 using System.ServiceModel.Activation;
 using System.Web.Routing;
+using System.Net.Http;
+using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Security;
 
 namespace Rhetos.RestGenerator
 {
@@ -28,6 +31,7 @@ using Microsoft.Owin.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using Owin;
+using System.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,16 +48,153 @@ using System.Reflection;
 using System.ServiceModel;
 using System.ServiceModel.Web;
 using System.ServiceModel.Activation;
+using System.Net.Http;
+using System.Web.Security;
+using System.Security.Claims;
+using Microsoft.Owin.Security.Cookies;
+using Microsoft.Owin.Infrastructure;
+using Microsoft.Owin;
+using Microsoft.Owin.Security.DataHandler;
+using Microsoft.Owin.Security;
+using Microsoft.Owin.Security.DataProtection;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Rhetos.Rest
 {
+    public class CustomTicketDataFormat : ISecureDataFormat<AuthenticationTicket>
+    {
+        private readonly TicketDataFormat innerDataFormat;
+
+        public CustomTicketDataFormat(IDataProtector protector)
+        {
+            innerDataFormat = new TicketDataFormat(protector);
+        }
+
+        string ISecureDataFormat<AuthenticationTicket>.Protect(AuthenticationTicket data)
+        {
+            var output = innerDataFormat.Protect(data);
+            return output;
+        }
+
+        AuthenticationTicket ISecureDataFormat<AuthenticationTicket>.Unprotect(string protectedText)
+        {
+            FormsAuthenticationTicket ticket;
+            try
+            {
+                ticket = FormsAuthentication.Decrypt(protectedText);
+            }
+            catch
+            {
+                return null;
+            }
+
+            if (ticket == null)
+            {
+                return null;
+            }
+            var authProperties = new AuthenticationProperties()
+            {
+                ExpiresUtc = ticket.Expiration.ToUniversalTime(),
+                IsPersistent = ticket.IsPersistent,
+                IssuedUtc = ticket.IssueDate.ToUniversalTime()
+            };
+            var identities = new[]
+            {
+                new Claim(ClaimTypes.Name, ticket.Name)
+            };
+
+            var identity = new ClaimsIdentity(identities);
+
+            var authTicket = new AuthenticationTicket(identity, authProperties);
+
+            return authTicket;
+        }
+    }
+
+    public class WebApiCookieAuthentication : CookieAuthenticationProvider
+    {
+        public override Task ValidateIdentity(CookieValidateIdentityContext context)
+        {
+            var cookies = context.OwinContext.Request.Cookies;
+            foreach (var cookie in cookies)
+            {
+                string value = cookie.Value;
+                byte[] buffer = Encoding.Default.GetBytes(value);
+                byte[] decryptBuffer = MachineKey.Unprotect(buffer, new string[] { ""Decrypt Cookie""});
+                string cookieDecrypted = Encoding.UTF8.GetString(decryptBuffer);
+            }
+            return base.ValidateIdentity(context);
+        }
+    }
+
     [System.ServiceModel.ServiceContract]
     [System.ServiceModel.Activation.AspNetCompatibilityRequirements(RequirementsMode = System.ServiceModel.Activation.AspNetCompatibilityRequirementsMode.Allowed)]
     public class RestServiceTest
     {
+         private readonly string[] _dummyAuthCookies = { ""ASP.NET_SessionId="", "".ASPXAUTH="", ""formsAuth={}"" };
+
         [OperationContract]
-        [WebGet(UriTemplate=""/*"")]
-        public string getStringTest()
+        [WebGet(UriTemplate=""/*"", RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
+        public async Task<string> getStringTest()
+        {
+            string result;
+            HttpContext context = HttpContext.Current;
+            string path = context.Request.RawUrl;
+            CookieContainer cookiecontainer = new CookieContainer();
+            using (HttpClient httpClient = new HttpClient(new HttpClientHandler() { CookieContainer = cookiecontainer }))
+            {
+                var requestMessage = new HttpRequestMessage();
+                requestMessage.Method = new HttpMethod(""GET"");
+                // Copy the request headers
+
+                foreach(var key in context.Request.Headers.AllKeys)
+                {
+                    if (!requestMessage.Headers.TryAddWithoutValidation(key, context.Request.Headers[key]))
+                        requestMessage.Content.Headers.TryAddWithoutValidation(key, context.Request.Headers[key]);
+                }
+                requestMessage.Headers.Host = ""localhost:9100"";
+                var uriString = ""http://localhost:9100"" + path;
+                requestMessage.RequestUri = new Uri(uriString);
+                if (!requestMessage.Headers.Contains(""Origin""))
+                    requestMessage.Headers.TryAddWithoutValidation(""Origin"", ""http://localhost"");
+                var baseAddress = new Uri (""http://localhost:9100"");
+                foreach (var dummyAuthCookie in _dummyAuthCookies)
+                    cookiecontainer.SetCookies(baseAddress, dummyAuthCookie);
+                foreach (var cookie in context.Request.Headers[""Cookie""].Split(';').Select(x => x.Trim()))
+                    cookiecontainer.SetCookies(baseAddress, cookie);
+                using (var responseMessage = await httpClient.SendAsync(requestMessage))
+                {
+                    int statusCode = (int)responseMessage.StatusCode;
+                    result = await responseMessage.Content.ReadAsStringAsync();
+                }
+            }
+            return result;
+        }
+
+        [OperationContract]
+        [WebInvoke(Method = ""POST"", UriTemplate = ""/*"", BodyStyle = WebMessageBodyStyle.Bare, RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
+        public string postStringTest(Stream bodyStream)
+        {
+            String body = new StreamReader(bodyStream).ReadToEnd();
+            IncomingWebRequestContext requestContext = WebOperationContext.Current.IncomingRequest;
+            WebHeaderCollection header = requestContext.Headers;
+            string cookies = header[HttpRequestHeader.Cookie];
+            return ""abcd"";
+        }
+
+        [OperationContract]
+        [WebInvoke(Method = ""PUT"", UriTemplate = ""/*"", BodyStyle = WebMessageBodyStyle.Bare, RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
+        public string putStringTest()
+        {
+            IncomingWebRequestContext requestContext = WebOperationContext.Current.IncomingRequest;
+            WebHeaderCollection header = requestContext.Headers;
+            string cookies = header[HttpRequestHeader.Cookie];
+            return ""abcd"";
+        }
+
+        [OperationContract]
+        [WebInvoke(Method = ""DELETE"", UriTemplate = ""/*"", BodyStyle = WebMessageBodyStyle.Bare, RequestFormat = WebMessageFormat.Json, ResponseFormat = WebMessageFormat.Json)]
+        public string deleteStringTest()
         {
             IncomingWebRequestContext requestContext = WebOperationContext.Current.IncomingRequest;
             WebHeaderCollection header = requestContext.Headers;
@@ -98,6 +239,23 @@ namespace Rhetos.Rest
                 routeTemplate: ""api/{controller}/{id}"",
                 defaults: new { id = RouteParameter.Optional });
             config.DependencyResolver = new AutofacWebApiDependencyResolver(AutofacServiceHostFactory.Container);
+            
+            //IDataProtector dataProtector = appBuilder.CreateDataProtector(
+            //        typeof(CookieAuthenticationMiddleware).FullName,
+            //        ""ApplicationCookie"", ""v1"");
+            IDataProtector dataProtector = appBuilder.CreateDataProtector(
+                    ""SampleApplicationDataProtector"",
+                    ""ApplicationCookie"", ""v1"");
+
+            var ticketDataFormat = new CustomTicketDataFormat(dataProtector);
+            
+            appBuilder.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AuthenticationType = ""ApplicationCookie"",
+                Provider = new WebApiCookieAuthentication(),
+                TicketDataFormat = ticketDataFormat,
+                CookieName = "".ASPXAUTH""
+            });
             appBuilder.UseWebApi(config);
         }
     }
@@ -109,7 +267,6 @@ namespace Rhetos.Rest
         protected override void Load(ContainerBuilder builder)
         {
             builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
-            builder.RegisterType<RestServiceTest>().InstancePerLifetimeScope();
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
             " + @"
             base.Load(builder);
@@ -132,7 +289,7 @@ namespace Rhetos.Rest
         }
     }
 
-    [RoutePrefix(""Example/Common"")]
+    [RoutePrefix(""Rest/Example/Common"")]
     public class ExampleCommonController : ApiController
     {
         [HttpGet]
@@ -151,7 +308,6 @@ namespace Rhetos.Rest
         public void GenerateCode(IConceptInfo conceptInfo, ICodeBuilder codeBuilder)
         {
             codeBuilder.InsertCode(CodeSnippet);
-
             // Global
             codeBuilder.AddReferencesFromDependency(typeof(Guid));
             codeBuilder.AddReferencesFromDependency(typeof(System.Linq.Enumerable));
@@ -169,10 +325,11 @@ namespace Rhetos.Rest
             codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Activation.WebServiceHostFactory));
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.Routing.RouteTable));
             codeBuilder.AddReferencesFromDependency(typeof(Route));
-            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Web.IncomingWebRequestContext));
-            codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Web.WebOperationContext));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Net.WebHeaderCollection));
-
+            codeBuilder.AddReferencesFromDependency(typeof(System.Web.HttpContext));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpClient));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpClientHandler));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpRequestMessage));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpMethod));
             // Web Api
             codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "System.Web.Http.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "System.Web.Http.WebHost.dll"));
@@ -181,7 +338,8 @@ namespace Rhetos.Rest
             codeBuilder.AddReference(Path.Combine(_rootPath, "Autofac.Integration.Wcf.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "Microsoft.Owin.Host.HttpListener.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "Microsoft.Owin.dll"));
-            //codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "Microsoft.Owin.Security.Cookies.dll"));
+            codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "Microsoft.Owin.Security.Cookies.dll"));
+            codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "Microsoft.Owin.Security.dll"));
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.HttpApplication));
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpMessageHandler));
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.Formatting.JsonMediaTypeFormatter));
@@ -192,7 +350,13 @@ namespace Rhetos.Rest
             codeBuilder.AddReferencesFromDependency(typeof(Autofac.Integration.Wcf.AutofacHostFactory));
             codeBuilder.AddReferencesFromDependency(typeof(Autofac.Integration.WebApi.AutofacWebApiDependencyResolver));
             codeBuilder.AddReferencesFromDependency(typeof(System.Reflection.Assembly));
-            //codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.Cookies.CookieAuthenticationOptions));
+            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.Cookies.CookieAuthenticationProvider));
+            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.AuthenticationTicket));
+            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.DataProtection.IDataProtector));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Runtime.Serialization.Formatters.Binary.BinaryFormatter));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Web.Security.FormsAuthenticationTicket));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.ClaimsIdentity));
+            codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.Claim));
             // Rhetos
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.IService));
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Dom.DefaultConcepts.IEntity));

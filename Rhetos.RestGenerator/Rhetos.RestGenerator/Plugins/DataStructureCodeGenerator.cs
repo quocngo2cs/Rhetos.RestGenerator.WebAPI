@@ -41,7 +41,7 @@ namespace Rhetos.RestGenerator.Plugins
         {
             return string.Format(@"
     
-    [RoutePrefix(""{0}/{1}"")]
+    [RoutePrefix(""Rest/{0}/{1}"")]
     public class {0}{1}Controller : ApiController
     {{
         private ServiceUtility _serviceUtility;
