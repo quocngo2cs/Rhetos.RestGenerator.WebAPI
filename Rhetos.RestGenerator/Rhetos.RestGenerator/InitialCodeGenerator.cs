@@ -142,7 +142,7 @@ namespace Rhetos.WebApiRest
             config.Formatters.JsonFormatter.SerializerSettings =
             new JsonSerializerSettings
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver()
+                ContractResolver = new DefaultContractResolver()
             };
             config.MapHttpAttributeRoutes();
             config.Routes.MapHttpRoute(
@@ -252,7 +252,7 @@ namespace Rhetos.WebApiRest
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.HttpApplication));
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpMessageHandler));
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.Formatting.JsonMediaTypeFormatter));
-            codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver));
+            codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.Serialization.DefaultContractResolver));
             codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.JsonSerializerSettings));
             codeBuilder.AddReferencesFromDependency(typeof(Owin.WebApiAppBuilderExtensions));
             codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Hosting.WebApp));
