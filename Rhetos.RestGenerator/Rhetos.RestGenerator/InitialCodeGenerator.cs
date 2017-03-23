@@ -50,8 +50,10 @@ using Microsoft.Owin.Security.DataHandler;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.DataProtection;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
+using System.Security.Principal;
 
-namespace Rhetos.Rest
+namespace Rhetos.WebApiRest
 {
     public class CustomTicketDataFormat : ISecureDataFormat<AuthenticationTicket>
     {
@@ -95,7 +97,7 @@ namespace Rhetos.Rest
                 new Claim(ClaimTypes.Name, ticket.Name)
             };
 
-            var identity = new ClaimsIdentity(identities);
+            var identity = new ClaimsIdentity(identities,""ApplicationCookie"");
 
             var authTicket = new AuthenticationTicket(identity, authProperties);
 
@@ -108,17 +110,10 @@ namespace Rhetos.Rest
         public override Task ValidateIdentity(CookieValidateIdentityContext context)
         {
             var cookies = context.OwinContext.Request.Cookies;
-            foreach (var cookie in cookies)
-            {
-                string value = cookie.Value;
-                byte[] buffer = Encoding.Default.GetBytes(value);
-                byte[] decryptBuffer = MachineKey.Unprotect(buffer, new string[] { ""Decrypt Cookie""});
-                string cookieDecrypted = Encoding.UTF8.GetString(decryptBuffer);
-            }
             return base.ValidateIdentity(context);
         }
     }
-
+    
     public static class WebApiConfig
     {
         public static void Register(HttpConfiguration config)
@@ -154,6 +149,7 @@ namespace Rhetos.Rest
                 name: ""DefaultApi"",
                 routeTemplate: ""api/{controller}/{id}"",
                 defaults: new { id = RouteParameter.Optional });
+            
             config.DependencyResolver = new AutofacWebApiDependencyResolver(AutofacServiceHostFactory.Container);
 
             IDataProtector dataProtector = appBuilder.CreateDataProtector(
@@ -212,6 +208,7 @@ namespace Rhetos.Rest
             return filter;
         }
     }
+
 " + RhetosRestClassesTag + @"
 }
 ";
@@ -224,7 +221,6 @@ namespace Rhetos.Rest
             // Global
             codeBuilder.AddReferencesFromDependency(typeof(Guid));
             codeBuilder.AddReferencesFromDependency(typeof(System.Linq.Enumerable));
-            //codeBuilder.AddReferencesFromDependency(typeof(System.Configuration.ConfigurationElement));
             codeBuilder.AddReferencesFromDependency(typeof(System.Diagnostics.Stopwatch));
             codeBuilder.AddReferencesFromDependency(typeof(XmlReader));
 
@@ -270,6 +266,7 @@ namespace Rhetos.Rest
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.Security.FormsAuthenticationTicket));
             codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.ClaimsIdentity));
             codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.Claim));
+
             // Rhetos
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.IService));
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Dom.DefaultConcepts.IEntity));
