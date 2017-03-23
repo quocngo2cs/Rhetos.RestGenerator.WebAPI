@@ -58,3 +58,4 @@ namespace Rhetos.RestGenerator.Security
         }
     }
 }
+}
