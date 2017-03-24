@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="InitialCodeGenerator.cs" />
+    <Compile Include="Security\CustomTicketDataFormat.cs" />
     <Compile Include="Security\OwinUserInfo.cs" />
     <Compile Include="Plugins\ActionCodeGenerator.cs" />
     <Compile Include="Plugins\DataStructureCodeGenerator.cs" />

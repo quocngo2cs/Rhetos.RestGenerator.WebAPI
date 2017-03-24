@@ -43,79 +43,17 @@ using System.ServiceModel.Web;
 using System.ServiceModel.Activation;
 using System.Net.Http;
 using System.Web.Security;
-using System.Security.Claims;
 using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin;
-using Microsoft.Owin.Security.DataHandler;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.DataProtection;
 using System.Runtime.Serialization.Formatters.Binary;
-using System.Threading;
-using System.Security.Principal;
 using Rhetos.Utilities;
 using Rhetos.WebApiRestGenerator.Security;
 
 namespace Rhetos.WebApiRest
 {
-    public class CustomTicketDataFormat : ISecureDataFormat<AuthenticationTicket>
-    {
-        private readonly TicketDataFormat innerDataFormat;
-
-        public CustomTicketDataFormat(IDataProtector protector)
-        {
-            innerDataFormat = new TicketDataFormat(protector);
-        }
-
-        string ISecureDataFormat<AuthenticationTicket>.Protect(AuthenticationTicket data)
-        {
-            var output = innerDataFormat.Protect(data);
-            return output;
-        }
-
-        AuthenticationTicket ISecureDataFormat<AuthenticationTicket>.Unprotect(string protectedText)
-        {
-            FormsAuthenticationTicket ticket;
-            try
-            {
-                ticket = FormsAuthentication.Decrypt(protectedText);
-            }
-            catch
-            {
-                return null;
-            }
-
-            if (ticket == null)
-            {
-                return null;
-            }
-            var authProperties = new AuthenticationProperties()
-            {
-                ExpiresUtc = ticket.Expiration.ToUniversalTime(),
-                IsPersistent = ticket.IsPersistent,
-                IssuedUtc = ticket.IssueDate.ToUniversalTime()
-            };
-            var identities = new[]
-            {
-                new Claim(ClaimTypes.Name, ticket.Name)
-            };
-
-            var identity = new ClaimsIdentity(identities,""ApplicationCookie"");
-
-            var authTicket = new AuthenticationTicket(identity, authProperties);
-
-            return authTicket;
-        }
-    }
-
-    public class WebApiCookieAuthentication : CookieAuthenticationProvider
-    {
-        public override Task ValidateIdentity(CookieValidateIdentityContext context)
-        {
-            var cookies = context.OwinContext.Request.Cookies;
-            return base.ValidateIdentity(context);
-        }
-    }
     
     public static class WebApiConfig
     {
@@ -160,7 +98,6 @@ namespace Rhetos.WebApiRest
             appBuilder.UseCookieAuthentication(new CookieAuthenticationOptions
             {
                 AuthenticationType = ""ApplicationCookie"",
-                Provider = new WebApiCookieAuthentication(),
                 TicketDataFormat = ticketDataFormat,
                 CookieName = "".ASPXAUTH""
             });
@@ -236,11 +173,6 @@ namespace Rhetos.WebApiRest
             codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.Activation.WebServiceHostFactory));
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.Routing.RouteTable));
             codeBuilder.AddReferencesFromDependency(typeof(Route));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Web.HttpContext));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpClient));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpClientHandler));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpRequestMessage));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.HttpMethod));
             // Web Api
             codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "System.Web.Http.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Plugins", "System.Web.Http.WebHost.dll"));
@@ -256,19 +188,13 @@ namespace Rhetos.WebApiRest
             codeBuilder.AddReferencesFromDependency(typeof(System.Net.Http.Formatting.JsonMediaTypeFormatter));
             codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.Serialization.DefaultContractResolver));
             codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.JsonSerializerSettings));
-            codeBuilder.AddReferencesFromDependency(typeof(Owin.WebApiAppBuilderExtensions));
             codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Hosting.WebApp));
-            codeBuilder.AddReferencesFromDependency(typeof(Autofac.Integration.Wcf.AutofacHostFactory));
+            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.DataProtection.IDataProtector));
             codeBuilder.AddReferencesFromDependency(typeof(Autofac.Integration.WebApi.AutofacWebApiDependencyResolver));
             codeBuilder.AddReferencesFromDependency(typeof(System.Reflection.Assembly));
-            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.Cookies.CookieAuthenticationProvider));
-            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.AuthenticationTicket));
-            codeBuilder.AddReferencesFromDependency(typeof(Microsoft.Owin.Security.DataProtection.IDataProtector));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Runtime.Serialization.Formatters.Binary.BinaryFormatter));
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.Security.FormsAuthenticationTicket));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.ClaimsIdentity));
-            codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.Claim));
             codeBuilder.AddReferencesFromDependency(typeof(Autofac.ContainerBuilder));
+            codeBuilder.AddReferencesFromDependency(typeof(Owin.WebApiAppBuilderExtensions));
 
             // Rhetos
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.IService));

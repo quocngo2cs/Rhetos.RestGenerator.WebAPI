@@ -15,19 +15,7 @@ namespace Rhetos.WebApiRestGenerator.Plugins
     [ExportMetadata(MefProvider.Implements, typeof(ActionInfo))]
     public class ActionCodeGenerator : IRestGeneratorPlugin
     {
-        private static string ServiceRegistrationCodeSnippet(ActionInfo info)
-        {
-            return string.Format(@"builder.RegisterType<{0}{1}Controller>().InstancePerLifetimeScope();
-            ", info.Module.Name, info.Name);
-        }
-
-        private static string ServiceInitializationCodeSnippet(ActionInfo info)
-        {
-            return string.Format(@"System.Web.Routing.RouteTable.Routes.Add(new System.ServiceModel.Activation.ServiceRoute(""{0}/{1}"", 
-                new RestServiceHostFactory(), typeof({0}{1}Controller)));
-            ", info.Module.Name, info.Name);
-        }
-
+        
         private static string ServiceDefinitionCodeSnippet(ActionInfo info)
         {
             return String.Format(
