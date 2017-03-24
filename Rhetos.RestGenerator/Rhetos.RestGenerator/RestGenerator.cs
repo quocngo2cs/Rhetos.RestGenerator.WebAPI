@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ICodeGenerator = Rhetos.Compiler.ICodeGenerator;
 
-namespace Rhetos.RestGenerator
+namespace Rhetos.WebApiRestGenerator
 {
     [Export(typeof(IGenerator))]
     public class RestGenerator : IGenerator
@@ -24,7 +24,7 @@ namespace Rhetos.RestGenerator
 
         public static string GetAssemblyPath()
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Generated", "RestService.dll");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Generated", "ApiService.dll");
         }
 
         public RestGenerator(

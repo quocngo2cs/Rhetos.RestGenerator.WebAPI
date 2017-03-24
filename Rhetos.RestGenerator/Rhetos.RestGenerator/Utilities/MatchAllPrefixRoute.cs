@@ -2,7 +2,7 @@
 using System.Web;
 using System.Web.Routing;
 
-namespace Rhetos.RestGenerator.Utilities
+namespace Rhetos.WebApiRestGenerator.Utilities
 {
     public class MatchAllPrefixRoute : RouteBase
     {

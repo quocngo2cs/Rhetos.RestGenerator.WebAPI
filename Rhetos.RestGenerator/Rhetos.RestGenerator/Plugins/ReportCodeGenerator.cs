@@ -7,10 +7,9 @@ using Rhetos.Compiler;
 using Rhetos.Dsl;
 using Rhetos.Dsl.DefaultConcepts;
 using Rhetos.Extensibility;
-using Rhetos.RestGenerator;
 using Rhetos.Utilities;
 
-namespace Rhetos.RestGenerator.Plugins
+namespace Rhetos.WebApiRestGenerator.Plugins
 {
     [Export(typeof(IRestGeneratorPlugin))]
     [ExportMetadata(MefProvider.Implements, typeof(ReportDataInfo))]
@@ -24,8 +23,8 @@ namespace Rhetos.RestGenerator.Plugins
             codeBuilder.InsertCode(ServiceDefinitionCodeSnippet(info), InitialCodeGenerator.RhetosRestClassesTag);
             //codeBuilder.InsertCode(ServiceInitializationCodeSnippet(info), InitialCodeGenerator.ServiceInitializationTag);
 
-            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.ServiceUtility));
-            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.DownloadReportResult));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.WebApiRestGenerator.Utilities.ServiceUtility));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.WebApiRestGenerator.Utilities.DownloadReportResult));
             codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.JsonConvert));
         }
 
@@ -43,7 +42,7 @@ namespace Rhetos.RestGenerator.Plugins
         {
             return string.Format(@"
     
-    [RoutePrefix(""Rest/{0}/{1}"")]
+    [RoutePrefix(""Api/{0}/{1}"")]
     public class {0}{1}Controller : ApiController
     {{
         private ServiceUtility _serviceUtility;

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Rhetos.Compiler;
 using Rhetos.Dsl;
 
-namespace Rhetos.RestGenerator
+namespace Rhetos.WebApiRestGenerator
 {
     public interface IRestGeneratorPlugin : IConceptCodeGenerator
     {

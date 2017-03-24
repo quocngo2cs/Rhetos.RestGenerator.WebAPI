@@ -5,7 +5,7 @@ using System.Xml;
 using Rhetos.Compiler;
 using Rhetos.Dsl;
 
-namespace Rhetos.RestGenerator
+namespace Rhetos.WebApiRestGenerator
 {
     public class InitialCodeGenerator : IRestGeneratorPlugin
     {
@@ -16,9 +16,10 @@ namespace Rhetos.RestGenerator
         private const string CodeSnippet =
 @"
 using Autofac;
+using Autofac.Builder;
 using Module = Autofac.Module;
 using Rhetos.Dom.DefaultConcepts;
-using Rhetos.RestGenerator.Utilities;
+using Rhetos.WebApiRestGenerator.Utilities;
 using Microsoft.Owin.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -52,6 +53,8 @@ using Microsoft.Owin.Security.DataProtection;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Security.Principal;
+using Rhetos.Utilities;
+using Rhetos.WebApiRestGenerator.Security;
 
 namespace Rhetos.WebApiRest
 {
@@ -122,12 +125,6 @@ namespace Rhetos.WebApiRest
 
             // Web API routes
             config.MapHttpAttributeRoutes();
-
-            config.Routes.MapHttpRoute(
-                name: ""DefaultApi"",
-                routeTemplate: ""api/{controller}/{id}"",
-                defaults: new { id = RouteParameter.Optional }
-            );
         }
     }
 
@@ -145,12 +142,14 @@ namespace Rhetos.WebApiRest
                 ContractResolver = new DefaultContractResolver()
             };
             config.MapHttpAttributeRoutes();
-            config.Routes.MapHttpRoute(
-                name: ""DefaultApi"",
-                routeTemplate: ""api/{controller}/{id}"",
-                defaults: new { id = RouteParameter.Optional });
-            
-            config.DependencyResolver = new AutofacWebApiDependencyResolver(AutofacServiceHostFactory.Container);
+            //
+            var ApiContainer = AutofacServiceHostFactory.Container.BeginLifetimeScope();
+            ApiContainer.ComponentRegistry.Register(
+                RegistrationBuilder.CreateRegistration(
+                        RegistrationBuilder.ForType<OwinUserInfo>().As<IUserInfo>().InstancePerLifetimeScope())
+             );
+            //
+            config.DependencyResolver = new AutofacWebApiDependencyResolver(ApiContainer);
 
             IDataProtector dataProtector = appBuilder.CreateDataProtector(
                     ""SampleApplicationDataProtector"",
@@ -187,7 +186,7 @@ namespace Rhetos.WebApiRest
     {
         public void Initialize()
         {
-            System.Web.Routing.RouteTable.Routes.Add(new MatchAllPrefixRoute(""REST"", new WebAPIRestRouteHandler()));
+            System.Web.Routing.RouteTable.Routes.Add(new MatchAllPrefixRoute(""Api"", new WebAPIRestRouteHandler()));
             string baseAddress = ""http://localhost:9100/"";
             WebApp.Start<Startup>(url: baseAddress);
             GlobalConfiguration.Configure(WebApiConfig.Register);
@@ -198,7 +197,7 @@ namespace Rhetos.WebApiRest
         }
     }
 
-    [RoutePrefix(""Rest/Example/Common"")]
+    [RoutePrefix(""Api/Example/Common"")]
     public class ExampleCommonController : ApiController
     {
         [HttpGet]
@@ -226,6 +225,9 @@ namespace Rhetos.WebApiRest
 
             // Registration
             codeBuilder.AddReferencesFromDependency(typeof(System.ComponentModel.Composition.ExportAttribute));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Utilities.IUserInfo));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.WebApiRestGenerator.Security.OwinUserInfo));
+            codeBuilder.AddReferencesFromDependency(typeof(Autofac.Builder.RegistrationBuilder));
 
             //WCF
             codeBuilder.AddReferencesFromDependency(typeof(System.ServiceModel.ServiceContractAttribute));
@@ -266,6 +268,7 @@ namespace Rhetos.WebApiRest
             codeBuilder.AddReferencesFromDependency(typeof(System.Web.Security.FormsAuthenticationTicket));
             codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.ClaimsIdentity));
             codeBuilder.AddReferencesFromDependency(typeof(System.Security.Claims.Claim));
+            codeBuilder.AddReferencesFromDependency(typeof(Autofac.ContainerBuilder));
 
             // Rhetos
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.IService));
@@ -278,9 +281,9 @@ namespace Rhetos.WebApiRest
             codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Web.JsonErrorServiceBehavior));
 
             // RestGenerator
-            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.ServiceUtility));
-            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.WebAPIRestRouteHandler));
-            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.RestGenerator.Utilities.MatchAllPrefixRoute));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.WebApiRestGenerator.Utilities.ServiceUtility));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.WebApiRestGenerator.Utilities.WebAPIRestRouteHandler));
+            codeBuilder.AddReferencesFromDependency(typeof(Rhetos.WebApiRestGenerator.Utilities.MatchAllPrefixRoute));
 
             codeBuilder.AddReference(Path.Combine(_rootPath, "ServerDom.dll"));
             codeBuilder.AddReference(Path.Combine(_rootPath, "Autofac.dll"));

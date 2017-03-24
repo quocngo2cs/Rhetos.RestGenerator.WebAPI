@@ -8,9 +8,8 @@ using Rhetos.Compiler;
 using Rhetos.Dsl;
 using Rhetos.Dsl.DefaultConcepts;
 using Rhetos.Extensibility;
-using Rhetos.RestGenerator;
 
-namespace Rhetos.RestGenerator.Plugins
+namespace Rhetos.WebApiRestGenerator.Plugins
 {
     [Export(typeof(IRestGeneratorPlugin))]
     [ExportMetadata(MefProvider.Implements, typeof(ActionInfo))]
@@ -34,7 +33,7 @@ namespace Rhetos.RestGenerator.Plugins
             return String.Format(
 @"
     
-    [RoutePrefix(""Rest/{0}/{1}"")]
+    [RoutePrefix(""Api/{0}/{1}"")]
     public class {0}{1}Controller : ApiController
     {{
         private ServiceUtility _serviceUtility;

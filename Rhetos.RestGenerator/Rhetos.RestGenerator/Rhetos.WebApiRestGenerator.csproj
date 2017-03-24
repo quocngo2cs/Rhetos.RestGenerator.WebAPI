@@ -7,8 +7,8 @@
     <ProjectGuid>{4FE7B387-1E5D-4AC0-8052-D16B369B0C60}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Rhetos.RestGenerator</RootNamespace>
-    <AssemblyName>Rhetos.RestGenerator</AssemblyName>
+    <RootNamespace>Rhetos.WebApiRestGenerator</RootNamespace>
+    <AssemblyName>Rhetos.WebApiRestGenerator</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

@@ -8,9 +8,9 @@ using System.Threading;
 using Rhetos.Security;
 using System.Security.Principal;
 
-namespace Rhetos.RestGenerator.Security
+namespace Rhetos.WebApiRestGenerator.Security
 {
-    class OwinUserInfo : IUserInfo
+    public class OwinUserInfo : IUserInfo
     {
         private string _workstation;
         public OwinUserInfo(IWindowsSecurity windowsSecurity)

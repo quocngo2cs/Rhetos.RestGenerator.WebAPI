@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Rhetos.RestGenerator.Utilities
+namespace Rhetos.WebApiRestGenerator.Utilities
 {
     [Obsolete]
     public class CountResult
