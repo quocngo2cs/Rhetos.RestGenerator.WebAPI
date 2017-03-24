@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Routing;
@@ -26,6 +27,10 @@ namespace Rhetos.RestGenerator.Utilities
         public void ProcessRequest(HttpContext context)
         {
             Console.WriteLine("WebAPI service route.");
+            foreach (var assembly in System.Reflection.Assembly.GetExecutingAssembly().GetReferencedAssemblies())
+            {
+                Console.WriteLine($"{assembly.FullName} version {assembly.Version}");
+            }
 
             var method = GetHttpMethod(context);
             var requestUri = BuildRequestUri(context);
@@ -52,7 +57,21 @@ namespace Rhetos.RestGenerator.Utilities
                 httpRequestMessage.Content.Headers.ContentLength = context.Request.ContentLength;
             }
 
-            using (var httpClient = new HttpClient())
+            var cookieContainerAssembly = typeof(CookieContainer).Assembly;
+
+            Console.WriteLine($"[CookieContainer] FullName = {cookieContainerAssembly.FullName} version {cookieContainerAssembly.ImageRuntimeVersion}");
+            Console.WriteLine($"[CookieContainer] Location = {cookieContainerAssembly.Location}");
+
+            var cookieContainer = new CookieContainer();
+
+            foreach (var key in context.Request.Cookies.AllKeys)
+            {
+                var httpCookie = context.Request.Cookies.Get(key);
+                var cookie = new Cookie(httpCookie.Name, httpCookie.Value);
+                cookieContainer.Add(cookie);
+            }
+
+            using (var httpClient = new HttpClient(new HttpClientHandler() { CookieContainer = cookieContainer }))
             using (var response = httpClient.SendAsync(httpRequestMessage).Result)
             {
                 context.Response.StatusCode = (int)response.StatusCode;
@@ -71,9 +90,13 @@ namespace Rhetos.RestGenerator.Utilities
 
         private Uri BuildRequestUri(HttpContext context)
         {
-            var uriBuilder = new UriBuilder("http://localhost:9100/");
-            uriBuilder.Path = context.Request.Path;
-            uriBuilder.Query = context.Request.Url.Query;
+            var uriBuilder = new UriBuilder(context.Request.Url);
+            uriBuilder.Host = "localhost";
+            uriBuilder.Port = 9100;
+
+            //var uriBuilder = new UriBuilder("http://localhost:9100/");
+            //uriBuilder.Path = context.Request.Path;
+            //uriBuilder.Query = context.Request.Url.Query;
 
             return uriBuilder.Uri;
         }

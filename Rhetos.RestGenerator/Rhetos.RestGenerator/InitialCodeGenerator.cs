@@ -113,7 +113,7 @@ namespace Rhetos.WebApiRest
             return base.ValidateIdentity(context);
         }
     }
-    
+
     public static class WebApiConfig
     {
         public static void Register(HttpConfiguration config)
@@ -149,7 +149,7 @@ namespace Rhetos.WebApiRest
                 name: ""DefaultApi"",
                 routeTemplate: ""api/{controller}/{id}"",
                 defaults: new { id = RouteParameter.Optional });
-            
+
             config.DependencyResolver = new AutofacWebApiDependencyResolver(AutofacServiceHostFactory.Container);
 
             IDataProtector dataProtector = appBuilder.CreateDataProtector(
@@ -166,19 +166,6 @@ namespace Rhetos.WebApiRest
                 CookieName = "".ASPXAUTH""
             });
             appBuilder.UseWebApi(config);
-        }
-    }
-
-
-    [System.ComponentModel.Composition.Export(typeof(Module))]
-    public class RestServiceModuleConfiguration : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-            builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
-            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
-            " + @"
-            base.Load(builder);
         }
     }
 

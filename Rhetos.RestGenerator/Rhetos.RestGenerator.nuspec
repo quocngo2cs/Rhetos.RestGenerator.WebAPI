@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Rhetos.WebApiRestGenerator</id>
-    <version>1.0.82</version>
+    <version>1.0.92</version>
     <authors>2ClickSolutions</authors>
     <owners>2ClickSolutions</owners>
     <licenseUrl>http://opensource.org/licenses/AGPL-3.0</licenseUrl>
@@ -12,6 +12,7 @@
     <copyright>Copyright 2ClickSolutions 2017</copyright>
     <tags>Rhetos plugin</tags>
     <dependencies>
+	  <dependency id="System.Net.Http" version="4.3.1"/>
 	  <dependency id="Microsoft.Owin" version="2.0.2" />
 	  <dependency id="Microsoft.Owin.Security.Cookies" version="2.0.2" />
 	  <dependency id="Microsoft.AspNet.WebApi.WebHost" version="5.2.3" />
@@ -20,6 +21,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Rhetos.RestGenerator\bin\Release\Rhetos.RestGenerator.dll" target="Plugins" />
+    <file src="Rhetos.RestGenerator\bin\Release\Rhetos.WebApiRestGenerator.dll" target="Plugins" />
   </files>
 </package>
