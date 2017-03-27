@@ -162,6 +162,7 @@
     <Compile Include="RestGeneratorModuleConfiguration.cs" />
     <Compile Include="IRestGeneratorPlugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\Configurations.cs" />
     <Compile Include="Utilities\CountResult.cs" />
     <Compile Include="Utilities\DownloadReportResult.cs" />
     <Compile Include="Utilities\MatchAllPrefixRoute.cs" />

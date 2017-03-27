@@ -6,20 +6,21 @@ namespace Rhetos.RestGenerator.Utilities
 {
     public class MatchAllPrefixRoute : RouteBase
     {
+        private readonly string pathPrefix;
         private readonly Route innerRoute;
         private readonly IRouteHandler routeHandler;
-        private readonly Uri basePath;
 
         public MatchAllPrefixRoute(string pathPrefix, IRouteHandler routeHandler)
         {
-            this.basePath = new Uri(pathPrefix, UriKind.RelativeOrAbsolute);
+            this.pathPrefix = pathPrefix;
             this.routeHandler = routeHandler;
             this.innerRoute = new Route(pathPrefix, routeHandler);
         }
 
         public override RouteData GetRouteData(HttpContextBase httpContext)
         {
-            if (httpContext.Request.Url.IsBaseOf(basePath))
+            var requestPath = httpContext.Request.Path.TrimStart(new[] { '/' });
+            if (requestPath.StartsWith(pathPrefix, StringComparison.OrdinalIgnoreCase))
             {
                 return new RouteData(this, this.routeHandler);
             }
