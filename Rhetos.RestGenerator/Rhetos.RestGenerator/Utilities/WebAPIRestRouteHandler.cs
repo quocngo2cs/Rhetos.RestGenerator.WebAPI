@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Routing;
+using Rhetos.WebApiRestGenerator.Utilities;
 
 namespace Rhetos.WebApiRestGenerator.Utilities
 {
@@ -25,8 +27,6 @@ namespace Rhetos.WebApiRestGenerator.Utilities
 
         public void ProcessRequest(HttpContext context)
         {
-            Console.WriteLine("WebAPI service route.");
-
             var method = GetHttpMethod(context);
             var requestUri = BuildRequestUri(context);
             var httpRequestMessage = new HttpRequestMessage(method, requestUri);
@@ -47,12 +47,13 @@ namespace Rhetos.WebApiRestGenerator.Utilities
 
             if (CanHaveBody(method))
             {
-                httpRequestMessage.Content = new StreamContent(context.Request.InputStream);
-                httpRequestMessage.Content.Headers.Add("Content-Type", context.Request.ContentType);
-                httpRequestMessage.Content.Headers.ContentLength = context.Request.ContentLength;
+                SetupContentHeaders(context, httpRequestMessage);
             }
 
-            using (var httpClient = new HttpClient())
+            var cookieContainer = new CookieContainer();
+            SetupCookieHeaders(context, httpRequestMessage, cookieContainer);
+
+            using (var httpClient = new HttpClient(new HttpClientHandler() { CookieContainer = cookieContainer }))
             using (var response = httpClient.SendAsync(httpRequestMessage).Result)
             {
                 context.Response.StatusCode = (int)response.StatusCode;
@@ -69,11 +70,28 @@ namespace Rhetos.WebApiRestGenerator.Utilities
             }
         }
 
+        private static void SetupCookieHeaders(HttpContext context, HttpRequestMessage httpRequestMessage, CookieContainer cookieContainer)
+        {
+            foreach (var key in context.Request.Cookies.AllKeys)
+            {
+                var httpCookie = context.Request.Cookies[key];
+                var cookie = new Cookie(httpCookie.Name, httpCookie.Value, "/", httpRequestMessage.RequestUri.DnsSafeHost);
+                cookieContainer.Add(cookie);
+            }
+        }
+
+        private static void SetupContentHeaders(HttpContext context, HttpRequestMessage httpRequestMessage)
+        {
+            httpRequestMessage.Content = new StreamContent(context.Request.InputStream);
+            httpRequestMessage.Content.Headers.Add("Content-Type", context.Request.ContentType);
+            httpRequestMessage.Content.Headers.ContentLength = context.Request.ContentLength;
+        }
+
         private Uri BuildRequestUri(HttpContext context)
         {
-            var uriBuilder = new UriBuilder("http://localhost:9100/");
-            uriBuilder.Path = context.Request.Path;
-            uriBuilder.Query = context.Request.Url.Query;
+            var uriBuilder = new UriBuilder(context.Request.Url);
+            uriBuilder.Host = Configurations.WebApiHost;
+            uriBuilder.Port = Configurations.WebApiPort;
 
             return uriBuilder.Uri;
         }

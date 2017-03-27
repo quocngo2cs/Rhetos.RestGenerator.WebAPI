@@ -105,25 +105,12 @@ namespace Rhetos.WebApiRest
         }
     }
 
-
-    [System.ComponentModel.Composition.Export(typeof(Module))]
-    public class RestServiceModuleConfiguration : Module
-    {
-        protected override void Load(ContainerBuilder builder)
-        {
-            builder.RegisterType<ServiceUtility>().InstancePerLifetimeScope();
-            builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
-            " + @"
-            base.Load(builder);
-        }
-    }
-
     [System.ComponentModel.Composition.Export(typeof(Rhetos.IService))]
     public class RestServiceInitializer : Rhetos.IService
     {
         public void Initialize()
         {
-            System.Web.Routing.RouteTable.Routes.Add(new MatchAllPrefixRoute(""Api"", new WebAPIRestRouteHandler()));
+            System.Web.Routing.RouteTable.Routes.Add(new MatchAllPrefixRoute(""REST"", new WebAPIRestRouteHandler()));
             string baseAddress = ""http://localhost:9100/"";
             WebApp.Start<Startup>(url: baseAddress);
             GlobalConfiguration.Configure(WebApiConfig.Register);
@@ -134,7 +121,7 @@ namespace Rhetos.WebApiRest
         }
     }
 
-    [RoutePrefix(""Api/Example/Common"")]
+    [RoutePrefix(""Rest/Example/Common"")]
     public class ExampleCommonController : ApiController
     {
         [HttpGet]
