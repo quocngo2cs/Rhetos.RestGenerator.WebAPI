@@ -45,7 +45,7 @@ namespace Rhetos.WebApiRestGenerator.Utilities
                 catch { /* Do nothing */ }
             }
 
-            if (CanHaveBody(method))
+            if (CanHaveBody(context))
             {
                 SetupContentHeaders(context, httpRequestMessage);
             }
@@ -65,8 +65,7 @@ namespace Rhetos.WebApiRestGenerator.Utilities
                         context.Response.AddHeader(header.Key, headerValue);
                     }
                 }
-
-                response.Content.CopyToAsync(context.Response.OutputStream);
+                response.Content.CopyToAsync(context.Response.OutputStream).Wait();
             }
         }
 
@@ -82,7 +81,9 @@ namespace Rhetos.WebApiRestGenerator.Utilities
 
         private static void SetupContentHeaders(HttpContext context, HttpRequestMessage httpRequestMessage)
         {
-            httpRequestMessage.Content = new StreamContent(context.Request.InputStream);
+            if (context.Request.InputStream != null)
+                httpRequestMessage.Content = new StreamContent(context.Request.InputStream);
+
             httpRequestMessage.Content.Headers.Add("Content-Type", context.Request.ContentType);
             httpRequestMessage.Content.Headers.ContentLength = context.Request.ContentLength;
         }
@@ -119,11 +120,13 @@ namespace Rhetos.WebApiRestGenerator.Utilities
             return method;
         }
 
-        private static bool CanHaveBody(HttpMethod method)
+        private static bool CanHaveBody(HttpContext context)
         {
-            return method == HttpMethod.Post
-                || method == HttpMethod.Delete
-                || method == HttpMethod.Put;
+            var method = context.Request.HttpMethod;
+            return (method == HttpMethod.Post.Method
+                || method == HttpMethod.Delete.Method
+                || method == HttpMethod.Put.Method)
+                && context.Request.InputStream.Length > 0;
         }
     }
 }

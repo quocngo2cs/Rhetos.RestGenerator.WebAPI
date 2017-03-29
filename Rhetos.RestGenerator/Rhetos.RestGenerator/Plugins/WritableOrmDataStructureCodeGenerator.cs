@@ -26,7 +26,7 @@ namespace Rhetos.WebApiRestGenerator.Plugins
         }}
 
         [HttpPut]
-        [Route[""{{id}}""]]
+        [Route(""{{id}}"")]
         public void Update{0}{1}(string id, {0}.{1} entity)
         {{
             Guid guid;
@@ -41,7 +41,7 @@ namespace Rhetos.WebApiRestGenerator.Plugins
         }}
 
         [HttpDelete]
-        [Route[""{{id}}""]]
+        [Route(""{{id}}"")]
         public void Delete{0}{1}(string id)
         {{
             Guid guid;

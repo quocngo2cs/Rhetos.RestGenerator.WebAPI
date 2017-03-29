@@ -17,7 +17,6 @@ namespace Rhetos.WebApiRestGenerator
 @"
 using Autofac;
 using Autofac.Builder;
-using Module = Autofac.Module;
 using Rhetos.Dom.DefaultConcepts;
 using Rhetos.WebApiRestGenerator.Utilities;
 using Microsoft.Owin.Hosting;
@@ -51,7 +50,7 @@ using Microsoft.Owin.Security.DataProtection;
 using System.Runtime.Serialization.Formatters.Binary;
 using Rhetos.Utilities;
 using Rhetos.WebApiRestGenerator.Security;
-
+using Rhetos.WebApiRestGenerator.Utilities;
 namespace Rhetos.WebApiRest
 {
     
@@ -80,15 +79,15 @@ namespace Rhetos.WebApiRest
                 ContractResolver = new DefaultContractResolver()
             };
             config.MapHttpAttributeRoutes();
-            //
-            var ApiContainer = AutofacServiceHostFactory.Container.BeginLifetimeScope();
-            ApiContainer.ComponentRegistry.Register(
-                RegistrationBuilder.CreateRegistration(
-                        RegistrationBuilder.ForType<OwinUserInfo>().As<IUserInfo>().InstancePerLifetimeScope())
-             );
-            //
-            config.DependencyResolver = new AutofacWebApiDependencyResolver(ApiContainer);
-
+            
+            var scope = AutofacHostFactory.Container.BeginLifetimeScope(builder =>
+            {
+                builder.RegisterType<ServiceUtility>().InstancePerRequest();
+                builder.RegisterType<OwinUserInfo>().As<IUserInfo>().InstancePerRequest();
+                builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
+            });
+            config.DependencyResolver = new AutofacWebApiDependencyResolver(scope);
+            
             IDataProtector dataProtector = appBuilder.CreateDataProtector(
                     ""SampleApplicationDataProtector"",
                     ""ApplicationCookie"", ""v1"");
@@ -111,7 +110,7 @@ namespace Rhetos.WebApiRest
         public void Initialize()
         {
             System.Web.Routing.RouteTable.Routes.Add(new MatchAllPrefixRoute(""REST"", new WebAPIRestRouteHandler()));
-            string baseAddress = ""http://localhost:9100/"";
+            string baseAddress = ""http://"" + Configurations.WebApiHost + "":"" + Configurations.WebApiPort + ""/"";
             WebApp.Start<Startup>(url: baseAddress);
             GlobalConfiguration.Configure(WebApiConfig.Register);
         }
@@ -120,18 +119,6 @@ namespace Rhetos.WebApiRest
         {
         }
     }
-
-    [RoutePrefix(""Rest/Example/Common"")]
-    public class ExampleCommonController : ApiController
-    {
-        [HttpGet]
-        [Route("""")]
-        public string Get(string filter = null)
-        {
-            return filter;
-        }
-    }
-
 " + RhetosRestClassesTag + @"
 }
 ";

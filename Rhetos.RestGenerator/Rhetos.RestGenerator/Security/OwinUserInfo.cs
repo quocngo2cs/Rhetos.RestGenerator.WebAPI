@@ -42,7 +42,7 @@ namespace Rhetos.WebApiRestGenerator.Security
             get
             {
                 CheckIfUserRecognized();
-                return _workstation;
+                return "";
             }
         }
 

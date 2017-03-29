@@ -8,6 +8,9 @@ using Rhetos.Compiler;
 using Rhetos.Dsl;
 using Rhetos.Dsl.DefaultConcepts;
 using Rhetos.Extensibility;
+using Autofac;
+using System.Reflection;
+using Autofac.Integration.WebApi;
 
 namespace Rhetos.WebApiRestGenerator.Plugins
 {
@@ -15,13 +18,12 @@ namespace Rhetos.WebApiRestGenerator.Plugins
     [ExportMetadata(MefProvider.Implements, typeof(ActionInfo))]
     public class ActionCodeGenerator : IRestGeneratorPlugin
     {
-        
         private static string ServiceDefinitionCodeSnippet(ActionInfo info)
         {
             return String.Format(
 @"
     
-    [RoutePrefix(""Api/{0}/{1}"")]
+    [RoutePrefix(""Rest/{0}/{1}"")]
     public class {0}{1}Controller : ApiController
     {{
         private ServiceUtility _serviceUtility;
