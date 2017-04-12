@@ -21,7 +21,7 @@ namespace Rhetos.WebApiRestGenerator.Plugins
             return String.Format(
 @"
     
-    [RoutePrefix(""Api/{0}/{1}"")]
+    [RoutePrefix(""api/{0}/{1}"")]
     public class {0}{1}Controller : ApiController
     {{
         private ServiceUtility _serviceUtility;

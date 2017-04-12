@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Rhetos.WebApiRestGenerator</id>
-    <version>1.0.92</version>
+    <version>1.1.3</version>
     <authors>2ClickSolutions</authors>
     <owners>2ClickSolutions</owners>
     <licenseUrl>http://opensource.org/licenses/AGPL-3.0</licenseUrl>
@@ -11,16 +11,8 @@
       It automatically generates RESTful JSON web service for all entities, actions and other data structures that are defined in a Rhetos application.</description>
     <copyright>Copyright 2ClickSolutions 2017</copyright>
     <tags>Rhetos plugin</tags>
-    <dependencies>
-	  <dependency id="System.Net.Http" version="4.3.1"/>
-	  <dependency id="Microsoft.Owin" version="2.0.2" />
-	  <dependency id="Microsoft.Owin.Security.Cookies" version="2.0.2" />
-	  <dependency id="Microsoft.AspNet.WebApi.WebHost" version="5.2.3" />
-	  <dependency id="Microsoft.AspNet.WebApi.OwinSelfHost" version="5.2.3" />
-	  <dependency id="Autofac.Integration.WebApi" version="4.0.1" />
-    </dependencies>
   </metadata>
   <files>
-    <file src="Rhetos.RestGenerator\bin\Release\Rhetos.WebApiRestGenerator.dll" target="Plugins" />
+    <file src="Rhetos.RestGenerator\bin\Debug\Rhetos.WebApiRestGenerator.dll" target="Plugins" />
   </files>
 </package>
