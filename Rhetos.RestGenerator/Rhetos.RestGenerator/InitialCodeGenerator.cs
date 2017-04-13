@@ -45,7 +45,6 @@ namespace Rhetos.WebApiRest
         {
             builder.RegisterType<ServiceUtility>().InstancePerRequest();
             builder.RegisterApiControllers(Assembly.GetExecutingAssembly());
-
             base.Load(builder);
         }
     }

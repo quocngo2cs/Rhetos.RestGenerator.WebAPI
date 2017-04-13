@@ -55,8 +55,11 @@ namespace Rhetos.WebApiRestGenerator
                 IncludeDebugInformation = true,
                 CompilerOptions = ""
             };
-            Console.WriteLine(GetAssemblyPath());
             _assemblyGenerator.Generate(assemblySource, parameters);
+
+            string sourceFile = GetAssemblyPath();
+            string destinationFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory + "ApiService.dll");
+            File.Copy(sourceFile, destinationFile, true);
         }
 
         public IEnumerable<string> Dependencies
