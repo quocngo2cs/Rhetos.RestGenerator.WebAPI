@@ -126,6 +126,9 @@ namespace Rhetos.WebApiRestGenerator.Plugins
                 codeBuilder.InsertCode(ServiceDefinitionCodeSnippet(info), InitialCodeGenerator.RhetosRestClassesTag);
                 codeBuilder.AddReferencesFromDependency(typeof(Rhetos.Processing.DefaultCommands.ReadCommandResult));
                 codeBuilder.AddReferencesFromDependency(typeof(Newtonsoft.Json.Linq.JToken));
+
+                if (info is IWritableOrmDataStructure)
+                    WritableOrmDataStructureCodeGenerator.GenerateCode(conceptInfo, codeBuilder);
             }
         }
     }
